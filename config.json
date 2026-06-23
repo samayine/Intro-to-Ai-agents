@@ -1,12 +1,12 @@
 [
     {
-         "model": "gemini-1.5-flash",
-         "api_key": "",
+         "model": "gemini-2.5-flash",
+         "api_key": "${GOOGLE_GEMINI_API_KEY}",
          "api_type": "google"
     },
     {
-         "model": "gemini-1.5-pro",
-         "api_key": "",
+         "model": "gemini-2.5-flash",
+         "api_key": "${GOOGLE_GEMINI_API_KEY_2}",
          "api_type": "google"
     }
 ]
