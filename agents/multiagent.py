@@ -1,9 +1,22 @@
-
 from autogen import ConversableAgent
 import autogen
+import dotenv
+import os
 
-# Configure Gemini models
-config_list_gemini = autogen.config_list_from_json("config.json")
+dotenv.load_dotenv()
+
+# Build config list from all available API keys (supports fallback across accounts)
+_api_keys = [
+    os.getenv("GOOGLE_GEMINI_API_KEY"),
+    os.getenv("GOOGLE_GEMINI_API_KEY_2"),
+]
+config_list_gemini = [
+    {"model": "gemini-2.5-flash", "api_key": key, "api_type": "google"}
+    for key in _api_keys
+    if key and key != "your_second_api_key_here"
+]
+if not config_list_gemini:
+    raise RuntimeError("No valid Gemini API keys found. Check your .env file.")
 
 SYSTEM_MESSAGE_INITIAL_CFP_WRITER = """
 Your task is to write a good, clean, and impactful proposal or submission for a CFP to a technical event. 
@@ -20,10 +33,10 @@ The following are key tenets you have to abide by:
 initial_cfp_writer = ConversableAgent(
     name="CFP Writer",
     system_message=SYSTEM_MESSAGE_INITIAL_CFP_WRITER,
-    llm_config = {"config_list" : config_list_gemini},
-    code_execution_config = False,
-    human_input_mode = "NEVER",
-    function_map = None
+    llm_config={"config_list": config_list_gemini},
+    code_execution_config=False,
+    human_input_mode="NEVER",
+    function_map=None,
 )
 
 SYSTEM_MESSAGE_CFP_WRITER = """
@@ -35,10 +48,10 @@ If there is no actionable feedback, then output the final submission.
 cfp_writer = ConversableAgent(
     name="CFP Writer",
     system_message=SYSTEM_MESSAGE_CFP_WRITER,
-    llm_config = {"config_list" : config_list_gemini},
-    code_execution_config = False,
-    human_input_mode = "NEVER",
-    function_map = None
+    llm_config={"config_list": config_list_gemini},
+    code_execution_config=False,
+    human_input_mode="NEVER",
+    function_map=None,
 )
 
 
@@ -63,18 +76,26 @@ If there are aspects that are good, mention them so that it can be retain and le
 cfp_reviewer = ConversableAgent(
     name="CFP Reviewer",
     system_message=SYSTEM_MESSAGE_CFP_REVIEWER,
-    llm_config = {"config_list" : config_list_gemini},
-    code_execution_config = False,
-    human_input_mode = "NEVER",
-    function_map = None
+    llm_config={"config_list": config_list_gemini},
+    code_execution_config=False,
+    human_input_mode="NEVER",
+    function_map=None,
 )
 user_idea = input("Enter your rough CFP idea (what your talk is about):\n")
 
+print("\n=== [STEP 1] Generating Initial CFP Draft ===")
 initial_cfp = initial_cfp_writer.generate_reply(
-    messages=[{"content": user_idea, "role": "user"}])
+    messages=[{"content": user_idea, "role": "user"}]
+)
+initial_content = (
+    initial_cfp["content"] if isinstance(initial_cfp, dict) else initial_cfp
+)
+print(f"\n--- [Initial CFP Draft Output] ---\n{initial_content}\n")
 
+print("=== [STEP 2] Starting Agent Collaboration (Writer <-> Reviewer) ===")
 cfp_writer.initiate_chat(
     cfp_reviewer,
-    message=f"Following is a rough idea for which I would like a talk proposal that I can submit:\n{initial_cfp['content']}",
-    max_turns=2
+    message=f"Following is a rough idea for which I would like a talk proposal that I can submit:\n{initial_content}",
+    max_turns=2,
 )
+print("\n=== [STEP 3] Agent Collaboration Finished ===")

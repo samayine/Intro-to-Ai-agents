@@ -2,6 +2,9 @@ from typing import Literal
 
 import autogen
 from typing_extensions import Annotated
+import dotenv
+
+dotenv.load_dotenv()
 
 config_list = autogen.config_list_from_json(
    "config.json"

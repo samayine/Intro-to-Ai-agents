@@ -1,5 +1,8 @@
 from autogen import ConversableAgent
 import autogen
+import dotenv
+
+dotenv.load_dotenv()
 
 config_list_gemini = autogen.config_list_from_json("config.json")
 

@@ -1,6 +1,9 @@
 import autogen
 from typing import Annotated
 import datetime
+import dotenv
+
+dotenv.load_dotenv()
 
 config_list = autogen.config_list_from_json(
    "config.json")
